@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniEats • Global Food Delivery with Live GPS Map Tracking</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#ff4757',
+              600: '#ee3848',
+              700: '#d62233'
+            },
+            surface: {
+              dark: '#0F1117',
+              card: '#181C26',
+              raised: '#202634',
+              overlay: '#283042'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-surface-dark text-slate-100 min-h-screen">
+
+  <!-- ===================================================================== -->
+  <!-- TOP NAVIGATION HEADER                                                 -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-surface-dark/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <a href="#" onclick="showCatalog(); return false;" class="flex items-center gap-3 group shrink-0">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
+          <i data-lucide="utensils" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+            OmniEats <span class="text-[9px] font-mono uppercase bg-brand-500/20 text-brand-500 px-1.5 py-0.5 rounded-md font-bold">WORLD</span>
+          </span>
+          <p class="text-[10px] text-slate-400 font-mono">Live GPS Food Telemetry</p>
+        </div>
+      </a>
+
+      <!-- Live Location Detector & City Switcher Bar -->
+      <div class="hidden md:flex items-center gap-2 bg-surface-card border border-white/10 rounded-full p-1 pl-3 text-xs max-w-xl w-full">
+        <i data-lucide="map-pin" class="w-4 h-4 text-brand-500 shrink-0"></i>
+        <div class="truncate flex-1">
+          <span id="nav-location-label" class="text-slate-200 font-semibold truncate block">
+            📍 Chandigarh University & Kharar (Detecting GPS...)
+          </span>
+        </div>
+        
+        <!-- Live GPS Button -->
+        <button onclick="requestUserLocation(true)" id="live-gps-btn" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold text-[11px] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition-all shrink-0 shadow-sm" title="Ask browser for location permission & pinpoint exact address">
+          <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+          <span id="live-gps-btn-text">Detect Live GPS</span>
+        </button>
+
+        <!-- City Selector Dropdown -->
+        <select id="nav-city-select" onchange="handleCityChange(this.value)" class="bg-surface-raised text-slate-200 font-semibold border border-white/10 rounded-full px-2.5 py-1 text-[11px] focus:outline-none shrink-0">
+          <option value="All">🌍 All Dining (CU, Kharar & World)</option>
+          <option value="Chandigarh University" selected>🎓 Chandigarh University (CU Campus)</option>
+          <option value="Kharar">🏙️ Kharar & Sunny Enclave</option>
+          <option value="Mohali">🛍️ Mohali / VR Punjab</option>
+          <option value="Delhi">🇮🇳 New Delhi / NCR</option>
+          <option value="Rome">🇮🇹 Rome, Italy</option>
+          <option value="Tokyo">🇯🇵 Tokyo, Japan</option>
+          <option value="Paris">🇫🇷 Paris, France</option>
+          <option value="New York">🇺🇸 New York, USA</option>
+          <option value="Dubai">🇦🇪 Dubai, UAE</option>
+        </select>
+      </div>
+
+      <!-- Action Items & Cart Trigger -->
+      <div class="flex items-center gap-3 shrink-0">
+        <!-- Live Active Order Shortcut Pill (if order exists) -->
+        <button id="active-order-pill" onclick="showLiveTracking()" class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/25 transition-all animate-pulse">
+          <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+          <span>Track Live Order</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button onclick="toggleCartDrawer()" class="relative flex items-center gap-2 px-4 py-2 rounded-full bg-surface-card hover:bg-surface-raised border border-white/10 text-white text-xs font-bold transition-all shadow-sm">
+          <i data-lucide="shopping-bag" class="w-4 h-4 text-brand-500"></i>
+          <span class="hidden sm:inline">Cart</span>
+          <span id="nav-cart-badge" class="bg-brand-500 text-white text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold">0</span>
+          <span id="nav-cart-total" class="font-mono text-slate-300 ml-1">₹0</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Location Bar -->
+    <div class="md:hidden mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-xs text-slate-300">
+      <div class="flex items-center gap-1.5 truncate max-w-[210px]">
+        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i>
+        <span id="nav-location-mobile" class="truncate font-medium">CU & Kharar (Detecting GPS...)</span>
+      </div>
+      <button onclick="requestUserLocation(true)" class="bg-brand-500/15 text-brand-400 border border-brand-500/30 px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1">
+        <i data-lucide="crosshair" class="w-3 h-3"></i> Get Live GPS
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTAINER                                                        -->
+  <!-- ===================================================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- =================================================================== -->
+    <!-- VIEW 1: RESTAURANT CATALOG & DISCOVERY                              -->
+    <!-- =================================================================== -->
+    <section id="view-catalog" class="space-y-8">
+      
+      <!-- Hero Banner -->
+      <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-surface-card via-surface-raised to-surface-card border border-white/10 p-6 sm:p-10 shadow-2xl">
+        <div class="max-w-3xl space-y-4 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/15 border border-brand-500/30 text-brand-500 text-xs font-bold font-mono">
+            <span>● LIVE GPS DISPATCH & TELEMETRY</span>
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+            Authentic Food from Chandigarh University, Kharar & Beyond.
+          </h1>
+          <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+            Order student favorites from CU Gates 1 & 2, legendary Kharar Dhabas & Mughlai spots, alongside celebrated world kitchens with live GPS scooter telemetry straight to your doorstep.
+          </p>
+
+          <!-- Search & Quick Location Bar -->
+          <div class="space-y-3 pt-1">
+            <div class="relative w-full max-w-xl">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="catalog-search-input" oninput="handleSearch(this.value)" placeholder="Search CU food joints, Kharar dhabas, dishes or cuisines..." class="w-full bg-surface-dark/90 border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 transition-colors shadow-inner">
+            </div>
+
+            <!-- Campus & City Quick Chips -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="text-slate-400 text-[11px] font-mono font-semibold">Quick Select:</span>
+              <button onclick="requestUserLocation(true)" class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 transition-all shadow-sm">
+                <i data-lucide="crosshair" class="w-3.5 h-3.5"></i> 📍 Live GPS Detect
+              </button>
+              <button onclick="selectCampusArea('cu-campus')" class="bg-surface-dark/80 hover:bg-surface-raised border border-white/10 hover:border-brand-500/50 text-slate-200 px-3 py-1.5 rounded-full font-semibold transition-all">
+                🎓 CU Campus & Gates
+              </button>
+              <button onclick="selectCampusArea('kharar-sunny')" class="bg-surface-dark/80 hover:bg-surface-raised border border-white/10 hover:border-brand-500/50 text-slate-200 px-3 py-1.5 rounded-full font-semibold transition-all">
+                🏙️ Kharar / Sunny Enclave
+              </button>
+              <button onclick="selectCampusArea('vr-punjab')" class="bg-surface-dark/80 hover:bg-surface-raised border border-white/10 hover:border-brand-500/50 text-slate-200 px-3 py-1.5 rounded-full font-semibold transition-all">
+                🛍️ VR Punjab Mall
+              </button>
+              <button onclick="selectCampusArea('all')" class="bg-surface-dark/80 hover:bg-surface-raised border border-white/10 text-slate-300 px-3 py-1.5 rounded-full font-medium transition-all">
+                🌍 All Global Cities
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Decorative background glow -->
+        <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-brand-500/10 to-transparent pointer-events-none"></div>
+      </div>
+
+      <!-- Live GPS Location Banner (Interactive Permission Bar) -->
+      <div id="gps-status-banner" class="p-4 sm:p-5 rounded-2xl bg-surface-card border border-brand-500/30 bg-brand-500/5 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs transition-all">
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-brand-500/20 text-brand-500 flex items-center justify-center shrink-0 shadow-sm">
+            <i data-lucide="navigation" class="w-5 h-5"></i>
+          </div>
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white text-sm" id="gps-banner-title">Live GPS Location Active</span>
+              <span id="gps-badge-status" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Backend Connected</span>
+            </div>
+            <p class="text-slate-300 text-xs" id="gps-banner-subtitle">
+              Pinpointed to: <strong id="gps-address-snippet" class="text-brand-400">Chandigarh University (CU), Gharuan & Kharar</strong>. Calculating exact kilometer distances to nearby kitchens.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="requestUserLocation(true)" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 shrink-0 transition-all shadow-md">
+            <i data-lucide="crosshair" class="w-4 h-4"></i>
+            <span>Refresh My Exact GPS</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cuisine Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2" id="cuisine-pills-container">
+        <button onclick="selectCuisine('All')" class="cuisine-pill active px-4 py-2 rounded-full text-xs font-semibold bg-brand-500 text-white shrink-0 transition-all">All Cuisines</button>
+        <button onclick="selectCuisine('Italian')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇮🇹 Italian & Pasta</button>
+        <button onclick="selectCuisine('Japanese')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇯🇵 Japanese & Wagyu</button>
+        <button onclick="selectCuisine('Indian')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇮🇳 Tandoor & Mughlai</button>
+        <button onclick="selectCuisine('French')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇫🇷 Classic French</button>
+        <button onclick="selectCuisine('American')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇺🇸 Artisan Burgers</button>
+        <button onclick="selectCuisine('Mexican')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇲🇽 Street Tacos</button>
+        <button onclick="selectCuisine('Thai')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇹🇭 Royal Thai</button>
+        <button onclick="selectCuisine('Middle Eastern')" class="cuisine-pill px-4 py-2 rounded-full text-xs font-semibold bg-surface-card text-slate-300 hover:text-white border border-white/5 shrink-0 transition-all">🇦🇪 Levant & Ouzi</button>
+      </div>
+
+      <!-- Restaurant Grid Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Featured Culinary Establishments</h2>
+          <p class="text-xs text-slate-400 mt-0.5" id="restaurants-count-label">Loading world restaurants...</p>
+        </div>
+      </div>
+
+      <!-- Restaurants Grid -->
+      <div id="restaurants-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injected dynamically by app.js -->
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 2: RESTAURANT MENU & ORDER WORKSPACE                           -->
+    <!-- =================================================================== -->
+    <section id="view-menu" class="space-y-6 hidden">
+      
+      <!-- Back Navigation & Breadcrumbs -->
+      <button onclick="showCatalog()" class="text-xs text-slate-400 hover:text-brand-500 font-medium flex items-center gap-1.5 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to All Restaurants
+      </button>
+
+      <!-- Restaurant Hero Card -->
+      <div id="restaurant-hero-card" class="bg-surface-card rounded-3xl border border-white/10 overflow-hidden relative shadow-2xl">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Menu Category Tabs -->
+      <div id="menu-categories-bar" class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/10">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Menu Items Grid -->
+      <div id="menu-items-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Injected dynamically -->
+      </div>
+
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- VIEW 3: LIVE TRACKING & FULL GOOGLE MAP PREVIEW                     -->
+    <!-- =================================================================== -->
+    <section id="view-tracking" class="space-y-6 hidden">
+      
+      <!-- Tracking Header & Order Status Bar -->
+      <div class="bg-surface-card p-6 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="badge-pill bg-brand-500/20 text-brand-500 border border-brand-500/30">LIVE GPS TELEMETRY</span>
+              <span class="text-xs font-mono text-slate-400">Order ID: <strong id="track-order-id" class="text-white">OE-849201</strong></span>
+            </div>
+            <h2 class="text-2xl font-black text-white" id="track-status-heading">Courier is En Route to Your Door</h2>
+            <p class="text-xs text-slate-400" id="track-status-subheading">Estimated Delivery: 18 minutes • Live coordinates updating</p>
+          </div>
+
+          <!-- Simulation Fast Forward Controller -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="advanceDriverSimulation()" class="bg-surface-raised hover:bg-surface-overlay text-white px-3.5 py-2 rounded-xl border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-all" title="Simulate driver moving closer on the map">
+              <i data-lucide="fast-forward" class="w-3.5 h-3.5 text-brand-500"></i>
+              <span>Simulate Movement</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-Step Visual Order Pipeline -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div id="pipe-step-1" class="p-3 rounded-xl bg-surface-raised border border-white/5 space-y-1">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>1. Confirmed</span>
+            </div>
+            <p class="text-[10px] text-slate-400">Payment Verified</p>
+          </div>
+
+          <div id="pipe-step-2" class="p-3 rounded-xl bg-surface-raised border border-white/5 space-y-1">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold">
+              <i data-lucide="chef-hat" class="w-4 h-4"></i>
+              <span>2. Kitchen Prep</span>
+            </div>
+            <p class="text-[10px] text-slate-400">Freshly Cooked</p>
+          </div>
+
+          <div id="pipe-step-3" class="p-3 rounded-xl bg-brand-500/15 border border-brand-500/30 space-y-1">
+            <div class="flex items-center gap-2 text-brand-500 font-bold">
+              <i data-lucide="truck" class="w-4 h-4 animate-bounce"></i>
+              <span>3. On The Way</span>
+            </div>
+            <p class="text-[10px] text-brand-400 font-mono" id="track-eta-pill">ETA: 14 mins</p>
+          </div>
+
+          <div id="pipe-step-4" class="p-3 rounded-xl bg-surface-raised border border-white/5 space-y-1 opacity-50">
+            <div class="flex items-center gap-2 text-slate-400 font-bold">
+              <i data-lucide="home" class="w-4 h-4"></i>
+              <span>4. Delivered</span>
+            </div>
+            <p class="text-[10px] text-slate-500">At Your Door</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Tracking Split: Full Map Preview & Driver Details -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left: Full Interactive Map Preview (8 cols) -->
+        <div class="lg:col-span-8 space-y-4">
+          <div class="bg-surface-card p-3 rounded-3xl border border-white/10 space-y-3">
+            <div class="flex items-center justify-between px-2 pt-1 text-xs">
+              <span class="font-bold text-white flex items-center gap-2">
+                <i data-lucide="map" class="w-4 h-4 text-brand-500"></i> Full Live GPS Map Preview
+              </span>
+              <div class="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Live GPS Signal</span>
+              </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="live-map-container"></div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 px-2 text-[11px] text-slate-400 font-mono pt-1">
+              <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Restaurant</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-brand-500 inline-block"></span> Driver Scooter</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-500 inline-block"></span> Your Address</span>
+              </div>
+              <span id="track-dist-remaining">Distance Remaining: 1.4 km</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Delivery Partner Card & Delivery Instructions Board (4 cols) -->
+        <div class="lg:col-span-4 space-y-6">
+          
+          <!-- Delivery Partner Identity Card -->
+          <div class="bg-surface-card p-6 rounded-3xl border border-white/10 space-y-5 shadow-xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+              <span class="badge-pill bg-emerald-500/15 text-emerald-400">ASSIGNED FLEET PARTNER</span>
+              <span class="text-xs font-mono text-slate-400">ID: <span id="driver-id-badge">DRV-01</span></span>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <img id="driver-avatar-img" src="" alt="Driver" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-brand-500/50 shadow-md">
+              <div class="space-y-1">
+                <h3 id="driver-name-display" class="text-lg font-bold text-white">Vikram Malhotra</h3>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="flex items-center gap-1 font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                    <i data-lucide="star" class="w-3 h-3 fill-amber-400"></i> <span id="driver-rating-display">4.94</span>
+                  </span>
+                  <span class="text-slate-400" id="driver-trips-display">2,140 deliveries</span>
+                </div>
+                <p id="driver-vehicle-display" class="text-[11px] text-slate-400 font-mono">TVS iQube • MH-02-CB-4892</p>
+              </div>
+            </div>
+
+            <!-- Contact Partner Actions -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              <a id="driver-call-btn" href="tel:+919820144821" class="py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md">
+                <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                <span>Call Partner</span>
+              </a>
+              <button onclick="promptDriverMessage()" class="py-2.5 px-3 rounded-xl bg-surface-raised hover:bg-surface-overlay text-white font-semibold text-xs border border-white/10 flex items-center justify-center gap-1.5 transition-colors">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span>Message</span>
+              </button>
+            </div>
+            
+            <div class="text-[11px] text-slate-400 font-mono bg-surface-dark/50 p-2.5 rounded-xl border border-white/5 flex items-center justify-between">
+              <span>Driver Phone Number:</span>
+              <strong id="driver-phone-display" class="text-white">+91 98201 44821</strong>
+            </div>
+          </div>
+
+          <!-- Driver Instructions Board (Exact User Requirement!) -->
+          <div class="bg-surface-card p-6 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-brand-500"></i>
+                <h4 class="text-sm font-bold text-white">Instructions to Delivery Man</h4>
+              </div>
+              <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                Driver Notified ✓
+              </span>
+            </div>
+
+            <p class="text-xs text-slate-300">
+              The following special instructions have been dispatched to the driver's phone:
+            </p>
+
+            <div id="tracking-instructions-board" class="space-y-2">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Delivery Address Summary -->
+          <div class="bg-surface-card p-5 rounded-3xl border border-white/10 space-y-2 text-xs">
+            <span class="text-[10px] font-mono uppercase text-slate-400">Delivery Destination</span>
+            <div class="font-bold text-white" id="track-address-street">Flat 402, Skyline Heights, Sunset Blvd</div>
+            <div class="text-slate-400" id="track-address-landmark">Landmark: Near Metro Gate 2</div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- SLIDE-OVER CART DRAWER & DELIVERY INSTRUCTIONS BOARD                   -->
+  <!-- ===================================================================== -->
+  <div id="cart-drawer-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden transition-opacity" onclick="toggleCartDrawer()"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 bottom-0 w-full sm:w-[460px] bg-surface-card border-l border-white/10 z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between overflow-y-auto">
+    
+    <!-- Drawer Header -->
+    <div class="p-6 border-b border-white/10 flex items-center justify-between bg-surface-dark/50">
+      <div class="flex items-center gap-2">
+        <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-500"></i>
+        <h3 class="text-lg font-bold text-white">Your Order Basket</h3>
+      </div>
+      <button onclick="toggleCartDrawer()" class="text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Body -->
+    <div class="p-6 space-y-6 flex-1">
+      
+      <!-- Cart Items List -->
+      <div class="space-y-3" id="cart-items-container">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Delivery Address Section -->
+      <div class="p-4 rounded-2xl bg-surface-dark border border-white/5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-bold text-white">
+            <i data-lucide="map-pin" class="w-4 h-4 text-brand-500"></i>
+            <span>Delivery Address</span>
+          </div>
+          <!-- Auto-Detect GPS Button -->
+          <button type="button" onclick="detectExactUserAddress()" id="btn-detect-cart-address" class="text-[11px] font-bold text-brand-500 hover:text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 px-2.5 py-1 rounded-lg border border-brand-500/30 flex items-center gap-1.5 transition-all shadow-sm">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+            <span id="cart-gps-btn-label">📍 Detect Exact GPS</span>
+          </button>
+        </div>
+
+        <!-- Live GPS Detection Status -->
+        <div id="cart-address-status" class="p-2.5 rounded-xl bg-surface-card border border-brand-500/20 text-brand-400 text-xs flex items-center gap-2">
+          <i data-lucide="navigation" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i>
+          <span id="cart-address-status-text" class="text-[11px] font-mono text-slate-300 truncate">
+            GPS: Chandigarh University Campus, Gharuan
+          </span>
+        </div>
+
+        <!-- Address Inputs -->
+        <div class="space-y-2">
+          <div>
+            <label class="text-[10px] font-mono uppercase text-slate-400 block mb-1">House / Flat / Hostel / Street Address:</label>
+            <input type="text" id="cart-input-street" placeholder="e.g. NC Hostel Block 3, Room 204 or House 42, Sunny Enclave" value="Chandigarh University Campus, NH-05, Gharuan" class="w-full bg-surface-card border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="text-[10px] font-mono uppercase text-slate-400 block mb-1">Landmark & Area:</label>
+            <input type="text" id="cart-input-landmark" placeholder="e.g. Near Gate No. 2 / Student Plaza" value="Near Gate No. 2 & Student Plaza, Mohali 140413" class="w-full bg-surface-card border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <!-- Quick Campus & Local Presets -->
+        <div class="space-y-1.5 pt-1 border-t border-white/5">
+          <span class="text-[10px] font-mono text-slate-400 uppercase block">Quick Select Campus & Local Spots:</span>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+            <button type="button" onclick="setPresetAddress('cu-gate2')" class="px-2.5 py-1.5 rounded-xl bg-surface-card hover:bg-surface-raised border border-white/10 text-slate-300 hover:text-white transition-all text-left flex items-center gap-1.5 truncate">
+              <span>🎓</span> <span class="truncate">CU Gate 2 / Plaza</span>
+            </button>
+            <button type="button" onclick="setPresetAddress('cu-hostel')" class="px-2.5 py-1.5 rounded-xl bg-surface-card hover:bg-surface-raised border border-white/10 text-slate-300 hover:text-white transition-all text-left flex items-center gap-1.5 truncate">
+              <span>🏢</span> <span class="truncate">CU Hostels / NC</span>
+            </button>
+            <button type="button" onclick="setPresetAddress('kharar-sunny')" class="px-2.5 py-1.5 rounded-xl bg-surface-card hover:bg-surface-raised border border-white/10 text-slate-300 hover:text-white transition-all text-left flex items-center gap-1.5 truncate">
+              <span>🏙️</span> <span class="truncate">Kharar Sunny Enclave</span>
+            </button>
+            <button type="button" onclick="setPresetAddress('vr-punjab')" class="px-2.5 py-1.5 rounded-xl bg-surface-card hover:bg-surface-raised border border-white/10 text-slate-300 hover:text-white transition-all text-left flex items-center gap-1.5 truncate">
+              <span>🛍️</span> <span class="truncate">VR Punjab Mall</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- DELIVERY INSTRUCTIONS BOARD (EXPLICIT USER REQUIREMENT!)          -->
+      <!-- ================================================================= -->
+      <div class="p-4 rounded-2xl bg-surface-dark border border-white/5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-bold text-white">
+            <i data-lucide="bell-off" class="w-4 h-4 text-amber-400"></i>
+            <span>Delivery Instructions Board</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400">Sent to Driver</span>
+        </div>
+
+        <p class="text-[11px] text-slate-400">
+          Tap chips to add safety, quietness, and pet reminders for the delivery partner:
+        </p>
+
+        <!-- Instruction Toggle Chips -->
+        <div class="flex flex-wrap gap-2 pt-1" id="instruction-chips-box">
+          <button type="button" onclick="toggleInstruction('dontRingBell')" id="chip-dontRingBell" class="instruction-chip">
+            <span>🔕 Don't ring the bell</span>
+          </button>
+          
+          <button type="button" onclick="toggleInstruction('avoidCalling')" id="chip-avoidCalling" class="instruction-chip">
+            <span>📵 Avoid calling</span>
+          </button>
+
+          <button type="button" onclick="toggleInstruction('petAtHome')" id="chip-petAtHome" class="instruction-chip">
+            <span>🐕 Pet at home</span>
+          </button>
+
+          <button type="button" onclick="toggleInstruction('leaveAtDoor')" id="chip-leaveAtDoor" class="instruction-chip">
+            <span>🚪 Leave at door</span>
+          </button>
+
+          <button type="button" onclick="toggleInstruction('leaveWithGuard')" id="chip-leaveWithGuard" class="instruction-chip">
+            <span>🏢 Leave with guard</span>
+          </button>
+        </div>
+
+        <!-- Custom Audio/Text Direction note for the delivery man -->
+        <div class="pt-2">
+          <input type="text" id="cart-custom-note" placeholder="Extra note for driver (e.g. Gate code #4821, 2nd floor)" class="w-full bg-surface-card border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+        </div>
+      </div>
+
+      <!-- Bill Breakdown -->
+      <div class="p-4 rounded-2xl bg-surface-dark border border-white/5 space-y-2 text-xs">
+        <div class="flex items-center justify-between text-slate-400">
+          <span>Items Total</span>
+          <span id="bill-items-total">₹0</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-400">
+          <span>Delivery Partner Fee</span>
+          <span id="bill-delivery-fee">₹49</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-400">
+          <span>Platform Service Fee</span>
+          <span>₹15</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-400">
+          <span>Govt Taxes & GST (5%)</span>
+          <span id="bill-taxes">₹0</span>
+        </div>
+        <div class="flex items-center justify-between text-base font-bold text-white pt-2 border-t border-white/10">
+          <span>Grand Total</span>
+          <span id="bill-grand-total" class="text-brand-500">₹0</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer / Checkout Button -->
+    <div class="p-6 border-t border-white/10 bg-surface-dark/80 space-y-2">
+      <button onclick="openPaymentModal()" id="btn-proceed-pay" class="w-full py-3.5 px-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-sm flex items-center justify-between transition-all shadow-lg shadow-brand-500/30">
+        <span>Proceed to Online Payment</span>
+        <span id="btn-pay-amount">₹0 →</span>
+      </button>
+      <p class="text-[10px] text-center text-slate-400">Instant UPI, Credit/Debit Cards, Netbanking & COD Supported</p>
+    </div>
+
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- ONLINE PAYMENT GATEWAY MODAL (UPI, NETBANKING, CREDIT CARDS)          -->
+  <!-- ===================================================================== -->
+  <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden transition-all">
+    <div class="bg-surface-card max-w-lg w-full rounded-3xl border border-white/10 p-6 sm:p-8 space-y-6 shadow-2xl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-500">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Online Payment Gateway</h3>
+            <p class="text-[11px] text-slate-400">256-Bit SSL Encrypted Checkout</p>
+          </div>
+        </div>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Payment Amount Banner -->
+      <div class="flex items-center justify-between p-4 rounded-2xl bg-surface-dark border border-white/5">
+        <div>
+          <span class="text-[10px] font-mono uppercase text-slate-400">Total Payable Amount</span>
+          <div class="text-2xl font-black text-white" id="modal-pay-total">₹0</div>
+        </div>
+        <span class="badge-pill bg-emerald-500/15 text-emerald-400">INSTANT DISPATCH</span>
+      </div>
+
+      <!-- Payment Tabs Switcher -->
+      <div class="grid grid-cols-4 gap-1 p-1 bg-surface-dark rounded-xl border border-white/5 text-xs font-semibold">
+        <button onclick="setPaymentTab('upi')" id="tab-pay-upi" class="py-2 rounded-lg bg-surface-raised text-white text-center transition-all">UPI</button>
+        <button onclick="setPaymentTab('card')" id="tab-pay-card" class="py-2 rounded-lg text-slate-400 text-center transition-all">Cards</button>
+        <button onclick="setPaymentTab('netbanking')" id="tab-pay-netbanking" class="py-2 rounded-lg text-slate-400 text-center transition-all">Netbanking</button>
+        <button onclick="setPaymentTab('cod')" id="tab-pay-cod" class="py-2 rounded-lg text-slate-400 text-center transition-all">COD</button>
+      </div>
+
+      <!-- TAB 1: UPI Gateway -->
+      <div id="pane-pay-upi" class="space-y-4">
+        <p class="text-xs text-slate-300">Choose your preferred UPI App or scan the generated dynamic QR code:</p>
+        
+        <!-- Quick UPI Apps -->
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="selectUpiApp('Google Pay')" class="p-3 rounded-xl bg-surface-dark hover:bg-surface-raised border border-white/5 flex flex-col items-center gap-1.5 transition-all">
+            <span class="text-sm font-bold text-white">GPay</span>
+            <span class="text-[9px] text-slate-400 font-mono">1-Tap</span>
+          </button>
+          <button type="button" onclick="selectUpiApp('PhonePe')" class="p-3 rounded-xl bg-surface-dark hover:bg-surface-raised border border-white/5 flex flex-col items-center gap-1.5 transition-all">
+            <span class="text-sm font-bold text-purple-400">PhonePe</span>
+            <span class="text-[9px] text-slate-400 font-mono">Instant</span>
+          </button>
+          <button type="button" onclick="selectUpiApp('Paytm')" class="p-3 rounded-xl bg-surface-dark hover:bg-surface-raised border border-white/5 flex flex-col items-center gap-1.5 transition-all">
+            <span class="text-sm font-bold text-sky-400">Paytm</span>
+            <span class="text-[9px] text-slate-400 font-mono">Fast</span>
+          </button>
+          <button type="button" onclick="selectUpiApp('BHIM')" class="p-3 rounded-xl bg-surface-dark hover:bg-surface-raised border border-white/5 flex flex-col items-center gap-1.5 transition-all">
+            <span class="text-sm font-bold text-emerald-400">BHIM</span>
+            <span class="text-[9px] text-slate-400 font-mono">Govt UPI</span>
+          </button>
+        </div>
+
+        <!-- Custom UPI ID Input -->
+        <div class="space-y-1 pt-1">
+          <label class="text-[11px] font-mono text-slate-400">Or Enter Any Virtual Payment Address (VPA)</label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="upi-vpa-input" placeholder="e.g. mobile@okaxis or username@okhdfcbank" value="customer@okhdfcbank" class="flex-1 bg-surface-dark border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+            <span class="text-emerald-400 text-xs font-mono font-bold">✓ Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Credit / Debit Card Gateway -->
+      <div id="pane-pay-card" class="space-y-4 hidden">
+        <!-- Interactive Card Preview -->
+        <div class="credit-card-preview p-5 space-y-4 text-white">
+          <div class="flex items-center justify-between">
+            <div class="card-chip"></div>
+            <span class="font-mono text-xs text-slate-300 font-bold" id="preview-card-network">VISA</span>
+          </div>
+          <div class="font-mono text-lg tracking-widest" id="preview-card-number">•••• •••• •••• 4892</div>
+          <div class="flex items-center justify-between text-xs font-mono">
+            <div>
+              <span class="text-[9px] text-slate-400 block">CARD HOLDER</span>
+              <span id="preview-card-holder">VIKRAM R</span>
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-400 block">EXPIRES</span>
+              <span id="preview-card-exp">08/29</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <input type="text" id="card-num-input" oninput="formatCardNumber(this)" placeholder="Card Number (16 Digits)" value="4532 8920 1840 4892" class="w-full bg-surface-dark border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500 font-mono">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="card-holder-input" oninput="document.getElementById('preview-card-holder').textContent = this.value.toUpperCase() || 'NAME'" placeholder="Name on Card" value="Vikram R" class="bg-surface-dark border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="card-exp-input" oninput="document.getElementById('preview-card-exp').textContent = this.value || 'MM/YY'" placeholder="MM/YY" value="08/29" class="bg-surface-dark border border-white/10 rounded-xl px-2 py-2 text-white text-center focus:outline-none focus:border-brand-500 font-mono">
+              <input type="password" maxlength="3" placeholder="CVV" value="842" class="bg-surface-dark border border-white/10 rounded-xl px-2 py-2 text-white text-center focus:outline-none focus:border-brand-500 font-mono">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Netbanking Gateway -->
+      <div id="pane-pay-netbanking" class="space-y-3 hidden">
+        <p class="text-xs text-slate-300">Select your bank for secure redirection:</p>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="HDFC" checked class="text-brand-500">
+            <span class="text-xs font-bold text-white">HDFC Bank</span>
+          </label>
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="ICICI" class="text-brand-500">
+            <span class="text-xs font-bold text-white">ICICI Bank</span>
+          </label>
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="SBI" class="text-brand-500">
+            <span class="text-xs font-bold text-white">State Bank</span>
+          </label>
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="Axis" class="text-brand-500">
+            <span class="text-xs font-bold text-white">Axis Bank</span>
+          </label>
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="Kotak" class="text-brand-500">
+            <span class="text-xs font-bold text-white">Kotak Bank</span>
+          </label>
+          <label class="p-2.5 rounded-xl bg-surface-dark border border-white/5 flex flex-col items-center gap-1 cursor-pointer hover:border-brand-500">
+            <input type="radio" name="bank-choice" value="Others" class="text-brand-500">
+            <span class="text-xs font-bold text-white">Other Banks</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- TAB 4: Cash on Delivery -->
+      <div id="pane-pay-cod" class="space-y-3 hidden">
+        <div class="p-4 rounded-2xl bg-surface-dark border border-white/5 text-xs text-slate-300 space-y-1">
+          <div class="font-bold text-white flex items-center gap-1.5">
+            <i data-lucide="banknote" class="w-4 h-4 text-emerald-400"></i> Cash on Delivery Option Available
+          </div>
+          <p>Please keep exact change ready. Digital payment will also be accepted by driver via QR on arrival.</p>
+        </div>
+      </div>
+
+      <!-- Payment Submit Button -->
+      <button onclick="confirmOrderPayment()" id="btn-confirm-payment" class="w-full py-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-brand-500/30">
+        <i data-lucide="lock" class="w-4 h-4"></i>
+        <span id="btn-confirm-payment-label">Confirm & Pay Securely</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Main JavaScript App Controller -->
+  <script src="app.js"></script>
+</body>
+</html>

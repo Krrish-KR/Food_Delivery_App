@@ -1,0 +1,372 @@
+{
+  "OE-770314": {
+    "id": "OE-770314",
+    "status": "DRIVER_ON_WAY",
+    "restaurant": {
+      "id": "rest-delhi-04",
+      "name": "Bukhara Artisanal Clay Oven",
+      "city": "New Delhi / Mumbai",
+      "phone": "+91 11 2611 2233",
+      "address": "Diplomatic Enclave, Sardar Patel Marg, New Delhi 110021, India",
+      "lat": 28.5975,
+      "lng": 77.1738,
+      "heroImage": "https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=1200&q=80"
+    },
+    "driver": {
+      "id": "drv-01",
+      "name": "Vikram Malhotra",
+      "phone": "+91 98201 44821",
+      "rating": 4.94,
+      "deliveriesCount": 2140,
+      "vehicleType": "Electric Fast Scooter (TVS iQube)",
+      "vehiclePlate": "MH-02-CB-4892",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80"
+    },
+    "items": [
+      {
+        "price": 360,
+        "quantity": 1,
+        "name": "World-Famous Dal Bukhara",
+        "id": "del-m1"
+      },
+      {
+        "price": 110,
+        "quantity": 2,
+        "name": "Garlic & Herb Butter Naan Platter",
+        "id": "del-m3"
+      }
+    ],
+    "pricing": {
+      "itemTotal": 580,
+      "deliveryFee": 39,
+      "platformFee": 15,
+      "taxes": 29,
+      "discount": 0,
+      "grandTotal": 663
+    },
+    "deliveryAddress": {
+      "street": "Flat 402, Skyline Heights, Sunset Blvd",
+      "city": "New Delhi",
+      "landmark": "Near Metro Gate 2",
+      "lat": 28.61,
+      "lng": 77.2
+    },
+    "deliveryInstructions": {
+      "dontRingBell": true,
+      "avoidCalling": true,
+      "petAtHome": true,
+      "leaveAtDoor": false,
+      "leaveWithGuard": false,
+      "customNote": "Gate code #4492. Second floor on right."
+    },
+    "payment": {
+      "method": "UPI",
+      "status": "COMPLETED",
+      "transactionId": "TXN_1790745728823"
+    },
+    "timestamps": {
+      "placedAt": "2026-09-30T05:22:08.823Z",
+      "estimatedDeliveryMin": 22,
+      "estimatedDeliveryTime": "11:14 AM"
+    },
+    "telemetry": {
+      "waypoints": [
+        [
+          28.5975,
+          77.1738
+        ],
+        [
+          28.597737,
+          77.175149
+        ],
+        [
+          28.599246,
+          77.176493
+        ],
+        [
+          28.598227,
+          77.17584
+        ],
+        [
+          28.600945,
+          77.179148
+        ],
+        [
+          28.598766,
+          77.180451
+        ],
+        [
+          28.602554,
+          77.178034
+        ],
+        [
+          28.599382,
+          77.182985
+        ],
+        [
+          28.604033,
+          77.18421
+        ],
+        [
+          28.6001,
+          77.180518
+        ],
+        [
+          28.605353,
+          77.186563
+        ],
+        [
+          28.600937,
+          77.187685
+        ],
+        [
+          28.606494,
+          77.183382
+        ],
+        [
+          28.601904,
+          77.189819
+        ],
+        [
+          28.607447,
+          77.190829
+        ],
+        [
+          28.603003,
+          77.186667
+        ],
+        [
+          28.608214,
+          77.19274
+        ],
+        [
+          28.604227,
+          77.193642
+        ],
+        [
+          28.608812,
+          77.190352
+        ],
+        [
+          28.605562,
+          77.195355
+        ],
+        [
+          28.609263,
+          77.196171
+        ],
+        [
+          28.606988,
+          77.194363
+        ],
+        [
+          28.609604,
+          77.197739
+        ],
+        [
+          28.608478,
+          77.198501
+        ],
+        [
+          28.609876,
+          77.198576
+        ],
+        [
+          28.61,
+          77.2
+        ]
+      ],
+      "currentStep": 7,
+      "currentPos": [
+        28.599382,
+        77.182985
+      ],
+      "totalSteps": 26,
+      "progressPct": 28,
+      "remainingMinutes": 13,
+      "distanceKm": 2.9
+    }
+  },
+  "OE-537815": {
+    "id": "OE-537815",
+    "status": "KITCHEN_PREPARING",
+    "restaurant": {
+      "id": "rest-cu-01",
+      "name": "CU Food Street & Kathi Rolls Junction",
+      "city": "Chandigarh University (CU)",
+      "phone": "+91 98765 12001",
+      "address": "Opposite Gate No. 2, Chandigarh University Campus, Gharuan, Mohali 140413",
+      "lat": 30.7715,
+      "lng": 76.5765,
+      "heroImage": "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=1200&q=80"
+    },
+    "driver": {
+      "id": "drv-04",
+      "name": "Carlos Mendez",
+      "phone": "+1 212 555 8921",
+      "rating": 4.95,
+      "deliveriesCount": 2680,
+      "vehicleType": "NIU Smart Cargo E-Bike",
+      "vehiclePlate": "NY-ECO-449",
+      "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=200&q=80"
+    },
+    "items": [
+      {
+        "price": 130,
+        "quantity": 2,
+        "name": "Double Paneer Tikka Malai Roll",
+        "id": "cu-m1"
+      }
+    ],
+    "pricing": {
+      "itemTotal": 260,
+      "deliveryFee": 19,
+      "platformFee": 15,
+      "taxes": 13,
+      "discount": 0,
+      "grandTotal": 307
+    },
+    "deliveryAddress": {
+      "street": "Chandigarh University, Opposite Gate No. 2, Gharuan, Mohali 140413",
+      "city": "Chandigarh University (CU)",
+      "landmark": "Near Student Plaza & Food Street",
+      "lat": 30.7715,
+      "lng": 76.5765
+    },
+    "deliveryInstructions": {
+      "dontRingBell": true,
+      "avoidCalling": true,
+      "petAtHome": false,
+      "leaveAtDoor": true,
+      "leaveWithGuard": false,
+      "customNote": "Hostel delivery - call when outside Gate 2"
+    },
+    "payment": {
+      "method": "UPI",
+      "status": "COMPLETED",
+      "transactionId": "TXN_1790746183204"
+    },
+    "timestamps": {
+      "placedAt": "2026-09-30T05:29:43.204Z",
+      "estimatedDeliveryMin": 22,
+      "estimatedDeliveryTime": "11:21 AM"
+    },
+    "telemetry": {
+      "waypoints": [
+        [
+          30.7715,
+          76.5765
+        ],
+        [
+          30.771237,
+          76.576801
+        ],
+        [
+          30.772246,
+          76.577097
+        ],
+        [
+          30.770727,
+          76.575396
+        ],
+        [
+          30.772945,
+          76.577656
+        ],
+        [
+          30.770266,
+          76.577911
+        ],
+        [
+          30.773554,
+          76.574446
+        ],
+        [
+          30.769882,
+          76.578349
+        ],
+        [
+          30.774033,
+          76.578526
+        ],
+        [
+          30.7696,
+          76.573786
+        ],
+        [
+          30.774353,
+          76.578783
+        ],
+        [
+          30.769437,
+          76.578857
+        ],
+        [
+          30.774494,
+          76.573506
+        ],
+        [
+          30.769404,
+          76.578895
+        ],
+        [
+          30.774447,
+          76.578857
+        ],
+        [
+          30.769503,
+          76.573647
+        ],
+        [
+          30.774214,
+          76.578672
+        ],
+        [
+          30.769727,
+          76.578526
+        ],
+        [
+          30.773812,
+          76.574188
+        ],
+        [
+          30.770062,
+          76.578143
+        ],
+        [
+          30.773263,
+          76.577911
+        ],
+        [
+          30.770488,
+          76.575055
+        ],
+        [
+          30.772604,
+          76.577383
+        ],
+        [
+          30.770978,
+          76.577097
+        ],
+        [
+          30.771876,
+          76.576124
+        ],
+        [
+          30.7715,
+          76.5765
+        ]
+      ],
+      "currentStep": 2,
+      "currentPos": [
+        30.7715,
+        76.5765
+      ],
+      "totalSteps": 26,
+      "progressPct": 15,
+      "remainingMinutes": 18,
+      "distanceKm": 0
+    }
+  }
+}

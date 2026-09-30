@@ -1,0 +1,25 @@
+{
+  "name": "omnieats-food-delivery-live",
+  "version": "1.0.0",
+  "description": "Global Food Delivery Platform with Live GPS Map Tracking, Instructions Board & Multi-Gateway Payments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "food-delivery",
+    "live-tracking",
+    "google-maps",
+    "upi-payment",
+    "delivery-instructions",
+    "global-restaurants"
+  ],
+  "author": "OmniEats Engineering",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

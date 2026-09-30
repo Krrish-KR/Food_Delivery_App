@@ -1,0 +1,173 @@
+/* styles.css - OmniEats Custom Aesthetics, Map Markers & Card Visuals */
+:root {
+  --primary-brand: #ff4757;
+  --primary-hover: #ee3848;
+  --surface-dark: #0f1117;
+  --surface-card: #181c26;
+  --surface-raised: #202634;
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(255, 71, 87, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--surface-dark);
+  color: #f1f5f9;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3144;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-brand);
+}
+
+/* Map Container Styling */
+#live-map-container {
+  height: 480px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border-light);
+  z-index: 1;
+}
+
+/* Custom Leaflet Map Markers */
+.driver-scooter-marker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.driver-scooter-icon {
+  width: 40px;
+  height: 40px;
+  background: #ff4757;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 71, 87, 0.6);
+  border: 2px solid #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 71, 87, 0.35);
+  animation: mapPulse 1.8s infinite;
+  z-index: 1;
+}
+
+@keyframes mapPulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.restaurant-marker-icon {
+  width: 36px;
+  height: 36px;
+  background: #10b981;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+  border: 2px solid #ffffff;
+}
+
+.customer-home-icon {
+  width: 36px;
+  height: 36px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+  border: 2px solid #ffffff;
+}
+
+/* Interactive Payment Credit Card Visual Preview */
+.credit-card-preview {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 300ms ease;
+}
+
+.credit-card-preview:hover {
+  transform: translateY(-2px);
+}
+
+.card-chip {
+  width: 38px;
+  height: 28px;
+  background: linear-gradient(135deg, #e2b96f 0%, #b8860b 100%);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+/* Delivery Instructions Toggle Chips */
+.instruction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  user-select: none;
+}
+
+.instruction-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.instruction-chip.active {
+  background: rgba(255, 71, 87, 0.15);
+  border-color: #ff4757;
+  color: #ff6b81;
+}
+
+/* Badge pills */
+.badge-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
